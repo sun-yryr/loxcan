@@ -31,7 +31,15 @@ class PnpmLockParser
          * } $assoc
          */
         $assoc = Yaml::parse($yaml) ?? [];
-        $packages = array_merge($assoc['dependencies'] ?? [], $assoc['devDependencies'] ?? []);
+        if ($assoc['lockfileVersion'] == '9.0') {
+            $packages = [];
+            $workspaces = $assoc['importers'];
+            foreach ($workspaces as $workspace => $dependencies) {
+                $packages = array_merge($packages, $dependencies['dependencies'] ?? [], $dependencies['devDependencies'] ?? []);
+            }
+        } else {
+            $packages = array_merge($assoc['dependencies'] ?? [], $assoc['devDependencies'] ?? []);
+        }
         $dependencies = [];
 
         foreach ($packages as $name => $version) {
